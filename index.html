@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="si">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Anyway – ඇණවුම් කරන්න</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Sinhala:wght@400;600;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f3f6fd;--surface:#fff;--ink:#14213d;--muted:#5b6785;--line:#d9e0f0;--brand:#143a8c;--brand-ink:#fff;--gem:#f2b01e;--gem-ink:#3a2a00;--ok:#1b7f4b;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1426;--surface:#161f38;--ink:#eef2ff;--muted:#9aa7c7;--line:#27345a;--brand:#7ea2ff;--brand-ink:#0d1426;--gem:#f2b01e;--gem-ink:#3a2a00;--ok:#4cc790}}
+:root[data-theme="dark"]{--bg:#0d1426;--surface:#161f38;--ink:#eef2ff;--muted:#9aa7c7;--line:#27345a;--brand:#7ea2ff;--brand-ink:#0d1426}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Noto Sans Sinhala",system-ui,sans-serif;line-height:1.6;padding-bottom:90px}
+header{background:var(--brand);color:var(--brand-ink);padding:22px 18px 26px}
+header h1{margin:0;font-size:1.5rem;font-weight:800}
+header p{margin:4px 0 0;opacity:.9;font-size:.95rem}
+.gem{display:inline-block;width:14px;height:14px;background:var(--gem);transform:rotate(45deg);margin-right:10px;border-radius:2px}
+main{max-width:640px;margin:0 auto;padding:0 14px}
+.tabs{display:flex;gap:8px;margin:16px 0;overflow-x:auto}
+.tabs button{flex:1;padding:10px 14px;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:999px;font:inherit;font-weight:600;cursor:pointer;white-space:nowrap}
+.tabs button[aria-selected="true"]{background:var(--brand);color:var(--brand-ink);border-color:var(--brand)}
+.note{background:var(--surface);border-left:4px solid var(--gem);padding:10px 12px;font-size:.88rem;color:var(--muted);margin-bottom:12px;border-radius:4px}
+.item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line);padding:12px 14px;border-radius:10px;margin-bottom:8px}
+.item b{display:block;font-weight:600}
+.item small{color:var(--muted)}
+.qty{display:flex;align-items:center;gap:10px}
+.qty button{width:36px;height:36px;border-radius:50%;border:none;background:var(--brand);color:var(--brand-ink);font-size:1.2rem;cursor:pointer}
+.qty button.minus{background:var(--line);color:var(--ink)}
+.qty span{min-width:20px;text-align:center;font-weight:700}
+.bar{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px));display:flex;justify-content:center}
+.bar button,.send{width:100%;max-width:612px;padding:14px;border:none;border-radius:10px;background:var(--gem);color:var(--gem-ink);font:inherit;font-weight:800;font-size:1rem;cursor:pointer}
+.bar button:disabled{opacity:.5}
+.sheet{position:fixed;inset:0;background:rgba(5,10,25,.6);display:none;align-items:flex-end;justify-content:center;z-index:5}
+.sheet.open{display:flex}
+.panel{background:var(--surface);width:100%;max-width:640px;max-height:92vh;overflow:auto;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
+.panel h2{margin:0 0 10px;font-size:1.2rem}
+.line{display:flex;justify-content:space-between;padding:4px 0;font-size:.95rem}
+.total{border-top:2px solid var(--line);margin-top:6px;padding-top:8px;font-weight:800}
+label{display:block;margin:12px 0 4px;font-weight:600;font-size:.9rem}
+input,textarea{width:100%;padding:11px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font:inherit}
+.close{float:right;background:none;border:none;color:var(--muted);font-size:1.6rem;cursor:pointer}
+.err{color:#d6336c;font-size:.85rem;min-height:1.2em;margin:6px 0}
+button:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid var(--gem);outline-offset:2px}
+</style>
+</head>
+<body>
+<header>
+  <h1><span class="gem"></span>Anyway</h1>
+  <p>ඕනම දෙයක් දොරකඩටම.</p>
+</header>
+<main>
+  <div class="tabs" role="tablist" id="tabs"></div>
+  <div id="note" class="note"></div>
+  <div id="list"></div>
+</main>
+<div class="bar"><button id="open" disabled>බඩු තෝරන්න</button></div>
+
+<div class="sheet" id="sheet">
+  <div class="panel" role="dialog" aria-label="ඇණවුම">
+    <button class="close" id="close" aria-label="වසන්න">×</button>
+    <h2>ඔබේ ඇණවුම</h2>
+    <div id="sum"></div>
+    <label for="name">නම</label><input id="name" autocomplete="name">
+    <label for="phone">දුරකථන අංකය</label><input id="phone" type="tel" inputmode="tel" autocomplete="tel">
+    <label for="addr">ලිපිනය (ළඟම ලකුණක් සමඟ)</label><textarea id="addr" rows="2"></textarea>
+    <label for="memo">විශේෂ සටහනක් (අවශ්‍ය නම්)</label><input id="memo">
+    <div class="err" id="err" role="alert"></div>
+    <div id="fb" style="display:none;margin:8px 0;font-size:.9rem"><a id="fl" target="_blank" rel="noopener" style="color:var(--brand);font-weight:700">WhatsApp විවෘත නොවුණා නම් මෙතන ඔබන්න</a><br><button class="send" id="cp" style="margin-top:8px;background:var(--line);color:var(--ink)">ඇණවුම copy කරන්න</button></div>
+    <button class="send" id="send">WhatsApp වලින් ඇණවුම යවන්න</button>
+    <p style="font-size:.8rem;color:var(--muted);margin:10px 0 0">අවසාන මිල අපි WhatsApp එකෙන් තහවුරු කරනවා.</p>
+  </div>
+</div>
+
+<script>
+// ඔබේ තොරතුරු මෙතන වෙනස් කරන්න
+var WHATSAPP = "94770170039";   // රට කේතය සමඟ, + නැතුව (උදා: 94771234567)
+var DELIVERY_FEE = 200;
+var CATS = {
+  groceries:{label:"බඩු සමාන",note:"මිල ගණන් උදාහරණ පමණයි. ඔබේ කඩවල මිල අනුව වෙනස් කරන්න.",items:[
+    ["සම්බා සහල් 1kg","kg",260],["සීනි 1kg","kg",290],["පරිප්පු 1kg","kg",420],["පොල්තෙල් 1L","බෝතලය",750],
+    ["තේ කොළ 200g","පැකට්",480],["ලූනු 1kg","kg",350],["කිරි පිටි 400g","පැකට්",1100],["බිත්තර 10ක්","පැකට්",480],["පාන් ගෙඩියක්","ගෙඩිය",160]]},
+  medicine:{label:"ඖෂධ",note:"වෛද්‍ය නිර්දේශයක් අවශ්‍ය ඖෂධ pharmacy එකෙන් prescription බලා පමණක් ලබාදෙනවා.",items:[
+    ["පැරසිටමෝල් (කාඩ් එකක්)","කාඩ්",60],["ORS පැකට්","පැකට්",40],["Vicks / balm","ඩබ්බාව",280],["ප්ලාස්ටර් (පැකට්)","පැකට්",150],["Antiseptic (Dettol 100ml)","බෝතලය",420],["Vitamin C (strip)","strip",200]]}
+};
+var cart={},cat="groceries";
+function fmt(n){return "රු. "+n.toLocaleString("en-US")}
+function tabs(){var t=document.getElementById("tabs");t.innerHTML="";Object.keys(CATS).forEach(function(k){var b=document.createElement("button");b.textContent=CATS[k].label;b.setAttribute("role","tab");b.setAttribute("aria-selected",k===cat);b.onclick=function(){cat=k;tabs();list()};t.appendChild(b)})}
+function list(){var c=CATS[cat],l=document.getElementById("list");document.getElementById("note").textContent=c.note;l.innerHTML="";
+  c.items.forEach(function(it,i){var id=cat+i,q=cart[id]?cart[id].q:0,d=document.createElement("div");d.className="item";
+    d.innerHTML='<div><b>'+it[0]+'</b><small>'+fmt(it[2])+' / '+it[1]+'</small></div><div class="qty"><button class="minus" aria-label="අඩු කරන්න">−</button><span>'+q+'</span><button aria-label="එකතු කරන්න">+</button></div>';
+    var bs=d.querySelectorAll("button");bs[0].onclick=function(){chg(id,it,-1)};bs[1].onclick=function(){chg(id,it,1)};l.appendChild(d)})}
+function chg(id,it,n){var q=(cart[id]?cart[id].q:0)+n;if(q<=0)delete cart[id];else cart[id]={n:it[0],p:it[2],q:q};list();bar()}
+function sub(){var s=0;for(var k in cart)s+=cart[k].p*cart[k].q;return s}
+function bar(){var b=document.getElementById("open"),c=0;for(var k in cart)c+=cart[k].q;b.disabled=!c;b.textContent=c?"ඇණවුම බලන්න ("+c+") · "+fmt(sub()):"බඩු තෝරන්න"}
+function summary(){var h="";for(var k in cart){var x=cart[k];h+='<div class="line"><span>'+x.n+' × '+x.q+'</span><span>'+fmt(x.p*x.q)+'</span></div>'}
+  h+='<div class="line"><span>බඩු මිල</span><span>'+fmt(sub())+'</span></div><div class="line"><span>ගෙනත් දීමේ ගාස්තුව</span><span>'+fmt(DELIVERY_FEE)+'</span></div><div class="line total"><span>එකතුව</span><span>'+fmt(sub()+DELIVERY_FEE)+'</span></div>';
+  document.getElementById("sum").innerHTML=h}
+var sheet=document.getElementById("sheet");
+document.getElementById("open").onclick=function(){summary();sheet.classList.add("open")};
+document.getElementById("close").onclick=function(){sheet.classList.remove("open")};
+document.getElementById("send").onclick=function(){
+  var n=document.getElementById("name").value.trim(),p=document.getElementById("phone").value.trim(),a=document.getElementById("addr").value.trim(),m=document.getElementById("memo").value.trim(),e=document.getElementById("err");
+  if(!n||!p||!a){e.textContent="නම, දුරකථන අංකය සහ ලිපිනය පුරවන්න.";return}
+  e.textContent="";
+  var t="*Anyway – අලුත් ඇණවුමක්*\n\n";for(var k in cart){var x=cart[k];t+="• "+x.n+" × "+x.q+" = "+fmt(x.p*x.q)+"\n"}
+  t+="\nබඩු: "+fmt(sub())+"\nගෙනත් දීම: "+fmt(DELIVERY_FEE)+"\n*එකතුව: "+fmt(sub()+DELIVERY_FEE)+"*\n\nනම: "+n+"\nදුරකථන: "+p+"\nලිපිනය: "+a+(m?"\nසටහන: "+m:"");
+  var u="https://wa.me/"+WHATSAPP+"?text="+encodeURIComponent(t);window.__msg=t;document.getElementById("fl").href=u;document.getElementById("fb").style.display="block";try{window.open(u,"_blank")}catch(x){}};
+document.getElementById("cp").onclick=function(){try{navigator.clipboard.writeText(window.__msg);this.textContent="Copy වුණා ✓"}catch(x){this.textContent="Copy කරන්න බැරි වුණා"}};
+tabs();list();bar();
+</script>
+</body>
+</html>
